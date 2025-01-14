@@ -6,7 +6,7 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 13:35:03 by umosse            #+#    #+#             */
-/*   Updated: 2025/01/14 17:10:57 by umosse           ###   ########.fr       */
+/*   Updated: 2025/01/14 17:51:12 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ int	main()
 		{
 			perror("event_count");
 			close(socket_fd);
-			exit(1);
+			continue ;
 		}
 		for (int n = 0; n < event_count; n++)
 		{
@@ -95,11 +95,11 @@ int	main()
 				{
 					perror("accept");
 					close(socket_fd);
-					exit(1);
+					continue ;
 				}
 				// fill struct for epoll
 				struct epoll_event ev;
-				ev.events = EPOLLIN | EPOLLET;
+				ev.events = EPOLLIN | EPOLLRDHUP;
 				ev.data.fd = client_fd;
 				if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev) == -1)
 				{
@@ -109,7 +109,17 @@ int	main()
 			}
 			else
 			{
-				if (events[n].events == EPOLLIN)
+				if (events[n].events & EPOLLRDHUP)
+				{
+					if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
+					{
+						perror("Error deleting the current connection");
+						continue ;
+					}
+					close(events[n].data.fd);
+					continue ;
+				}
+				if (events[n].events & EPOLLIN)
 				{
 					std::cout << "test\n";
 					struct epoll_event ev;
@@ -118,10 +128,10 @@ int	main()
 					if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, ev.data.fd, &ev) == -1)
 					{
 						perror("epoll_ctl : client_fd 2");
-						exit(1);
+						continue ;
 					}
 				}
-				if (events[n].events == EPOLLOUT)
+				if (events[n].events & EPOLLOUT)
 				{
 					std::cout << "oui\n";
 
@@ -146,12 +156,12 @@ int	main()
 					write(events[n].data.fd, "<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\">very cool link you should click</a>\n", 123);
 					struct epoll_event ev;
 					ev.data.fd = events[n].data.fd;
-					ev.events = EPOLLIN;
+					ev.events = EPOLLIN | EPOLLRDHUP;
 					if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
 					{
 						std::cout << ev.data.fd << "\n";
 						perror("epoll_ctl : client_fd 3");
-						exit(1);
+						continue ;
 					}
 				}
 			}
