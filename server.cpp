@@ -6,7 +6,7 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 13:35:03 by umosse            #+#    #+#             */
-/*   Updated: 2025/01/10 17:58:23 by umosse           ###   ########.fr       */
+/*   Updated: 2025/01/14 17:10:57 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ int	main()
 	//fill structure for address to bind
 	struct sockaddr_in addr; {};
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(9999);
+	addr.sin_port = htons(9997);
 	addr.sin_addr.s_addr = inet_addr("0.0.0.0");
 	sockaddr_in client_addr; {};
 	// fill struct for epoll
@@ -59,7 +59,7 @@ int	main()
 		exit(1);
 	}
 	//setup epoll to 
-	epoll_fd = epoll_create(0);
+	epoll_fd = epoll_create(1);
 	if (epoll_fd == -1)
 	{
 		perror("epoll_create");
@@ -87,6 +87,7 @@ int	main()
 		{
 			if (events[n].data.fd == socket_fd)
 			{
+				std::cout << "waiting for epoll\n";
 				socklen_t client_addr_len = sizeof(client_addr);
 				//accept a connection (stock the socket into an fd)
 				client_fd = accept(socket_fd, (sockaddr*)&client_addr, &client_addr_len);
@@ -96,22 +97,60 @@ int	main()
 					close(socket_fd);
 					exit(1);
 				}
+				// fill struct for epoll
+				struct epoll_event ev;
 				ev.events = EPOLLIN | EPOLLET;
 				ev.data.fd = client_fd;
 				if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev) == -1)
 				{
-					perror("epoll_ctl : client_fd");
+					perror("epoll_ctl : client_fd 1");
 					exit(1);
 				}
 			}
 			else
 			{
-				if (ev.events == EPOLLIN)
+				if (events[n].events == EPOLLIN)
 				{
+					std::cout << "test\n";
+					struct epoll_event ev;
+					ev.data.fd = events[n].data.fd;
 					ev.events = EPOLLOUT;
-					if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, client_fd, &ev) == -1)
+					if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, ev.data.fd, &ev) == -1)
 					{
-						perror("epoll_ctl : client_fd");
+						perror("epoll_ctl : client_fd 2");
+						exit(1);
+					}
+				}
+				if (events[n].events == EPOLLOUT)
+				{
+					std::cout << "oui\n";
+
+					//print on terminal what the server receives
+					int	i = 0;
+					char	buffer[1025];
+					do
+					{
+						i = read(events[n].data.fd, buffer, 1024);
+						buffer[i] = '\0';
+						printf("%s", buffer);
+					} while (i == 1024);
+
+					//simulate response from server
+					write(events[n].data.fd, "HTTP/1.1 200 OK\r\n", 17);
+					// Content-Type: text/html
+					write(events[n].data.fd, "Content-Type: text/html\r\n", 25);
+					write(events[n].data.fd, "\r\n", 2);
+					write(events[n].data.fd, "<head>\n\t<title>Hello world</title>\n</head>", 43);
+					write(events[n].data.fd, "<h1>Hello world</h1>\n", 22);
+					write(events[n].data.fd, "<p style='color: red;'>This is a paragraph</p>\n", 48);
+					write(events[n].data.fd, "<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\">very cool link you should click</a>\n", 123);
+					struct epoll_event ev;
+					ev.data.fd = events[n].data.fd;
+					ev.events = EPOLLIN;
+					if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
+					{
+						std::cout << ev.data.fd << "\n";
+						perror("epoll_ctl : client_fd 3");
 						exit(1);
 					}
 				}
@@ -154,24 +193,6 @@ int	main()
 
 
 	
-	std::cout << "oui\n";
-
-	//print on terminal what the server receives
-	int	n;
-	char	buffer[1025];
-	do
-	{
-		n = read(client_fd, buffer, 1024);
-		buffer[n] = '\0';
-		printf("%s", buffer);
-	} while (n == 1024);
-
-	//simulate response from server
-	write(client_fd, "HTTP/1.1 200 OK\r\n", 17);
-	// Content-Type: text/html
-	write(client_fd, "Content-Type: text/html\r\n", 25);
-	write(client_fd, "\r\n", 2);
-	write(client_fd, "<p style='color: red;'>Hello world</p>", 39);
 
 	close(socket_fd);
 }
