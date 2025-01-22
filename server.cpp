@@ -6,7 +6,7 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 13:35:03 by umosse            #+#    #+#             */
-/*   Updated: 2025/01/22 14:03:03 by umosse           ###   ########.fr       */
+/*   Updated: 2025/01/22 17:07:14 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,8 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 #include <fstream>
+#include <string>
+#include <sstream>
 
 #define MAX_EVENTS 42
 
@@ -146,19 +148,14 @@ int	main()
 				if (events[n].events & EPOLLOUT)
 				{
 					//simulate response from server
-					std::string header;
-					header = "HTTP/1.1 200 OK\r\n"
-					"Content-Type: text/html\r\n"
-					"Content-Length: 604\r\n"
-					"\r\n";
-					send(events[n].data.fd, header.c_str(), header.length(), 0);
+					std::stringstream header;
 					std::string page;
 					page = "<!DOCTYPE html>"
 					"<html lang=\"en\">"
 					"<head>"
 					"	<meta charset=\"UTF-8\">"
 					"	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-					"	<title>Document</title>"
+					"	<title>Webserv</title>"
 					"</head>"
 					"<body>"
 					"	<h1>Hello world</h1>"
@@ -166,8 +163,17 @@ int	main()
 					"	<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" target=\"_blank\">DUCK</a>"
 					"	<p></p>"
 					"	<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img src=\"https://yt3.googleusercontent.com/OuwCgGAdNqyeyJ8i3JocIXzjHdSBtZzMpnltZqtQBjRE5Xx7RCXO3XTzRgZ_JmKPFxkakbb6Ng=s900-c-k-c0x00ffffff-no-rj\" alt=\"FlexingPenguin\"</a>"
+					"	<form action method=\"post\" enctype=\"multipart/form-data\">"
+					"	<input type=\"file\" id=\"actual-btn\"/>"
+					"	<input type=\"submit\" id=\"sub-btn\"/>"
+					"	</form>"
 					"</body>"
 					"</html>";
+					std::size_t content_length = page.length();
+					header << "HTTP/1.1 200 OK\r\n"
+					"Content-Type: text/html\r\n";
+					header << "Content-Length: " << content_length << "\r\n\r\n";
+					send(events[n].data.fd, header.str().c_str(), header.str().length(), 0);
 					send(events[n].data.fd, page.c_str(), page.length(), 0);
 					struct epoll_event ev;
 					ev.data.fd = events[n].data.fd;
