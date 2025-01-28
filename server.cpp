@@ -6,27 +6,18 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 13:35:03 by umosse            #+#    #+#             */
-/*   Updated: 2025/01/22 17:07:14 by umosse           ###   ########.fr       */
+/*   Updated: 2025/01/28 15:09:04 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <iostream>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <sys/epoll.h>
-#include <fstream>
-#include <string>
-#include <sstream>
+#include "webserv.hpp"
 
 #define MAX_EVENTS 42
 
 int	main()
 {
+	t_parsing	parsing;
+	parsing = (t_parsing){0};
 	int	socket_fd;
 	int	client_fd;
 	int	epoll_fd;
@@ -157,17 +148,17 @@ int	main()
 					"	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
 					"	<title>Webserv</title>"
 					"</head>"
-					"<body>"
-					"	<h1>Hello world</h1>"
-					"	<p style='color: red;'>This is a paragraph</p>"
-					"	<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" target=\"_blank\">DUCK</a>"
-					"	<p></p>"
-					"	<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img src=\"https://yt3.googleusercontent.com/OuwCgGAdNqyeyJ8i3JocIXzjHdSBtZzMpnltZqtQBjRE5Xx7RCXO3XTzRgZ_JmKPFxkakbb6Ng=s900-c-k-c0x00ffffff-no-rj\" alt=\"FlexingPenguin\"</a>"
-					"	<form action method=\"post\" enctype=\"multipart/form-data\">"
-					"	<input type=\"file\" id=\"actual-btn\"/>"
-					"	<input type=\"submit\" id=\"sub-btn\"/>"
-					"	</form>"
-					"</body>"
+					"	<body>"
+					"		<h1>Hello world</h1>"
+					"		<p style='color: red;'>This is a paragraph</p>"
+					"		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" target=\"_blank\">DUCK</a>"
+					"		<p></p>"
+					"		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"</a>"
+					"		<form method=\"POST\" enctype=\"multipart/form-data\">"
+					"			<input type=\"file\" id=\"actual-btn\"/>"
+					"			<input type=\"submit\"/>"
+					"		</form>"
+					"	</body>"
 					"</html>";
 					std::size_t content_length = page.length();
 					header << "HTTP/1.1 200 OK\r\n"
