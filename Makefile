@@ -6,13 +6,13 @@
 #    By: umosse <umosse@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/01/10 13:24:32 by umosse            #+#    #+#              #
-#    Updated: 2025/01/10 13:24:45 by umosse           ###   ########.fr        #
+#    Updated: 2025/01/29 13:35:58 by umosse           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 CXX = c++
 NAME = Webserv
-SRCS = server.cpp
+SRCS = server.cpp request.cpp
 OBJS = $(SRCS:.cpp=.o)
 CXXFLAGS = -Wall -Werror -Wextra -g3 -std=c++98
 RM = rm -f

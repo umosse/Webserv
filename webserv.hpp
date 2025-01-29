@@ -6,7 +6,7 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 13:17:10 by umosse            #+#    #+#             */
-/*   Updated: 2025/01/28 15:08:42 by umosse           ###   ########.fr       */
+/*   Updated: 2025/01/29 13:35:28 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,9 @@
 # include <string>
 # include <sstream>
 
-typedef struct s_parsing {
+struct parsing {
+	std::string	request_body;
 	std::string	request_type;
-}	t_parsing;
+};
+
+void	ft_parse_request(parsing *parsing);

@@ -6,18 +6,20 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 13:35:03 by umosse            #+#    #+#             */
-/*   Updated: 2025/01/28 15:09:04 by umosse           ###   ########.fr       */
+/*   Updated: 2025/01/29 14:51:58 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
+#include <fstream>
+#include <ios>
+#include <sys/epoll.h>
 
 #define MAX_EVENTS 42
 
 int	main()
 {
-	t_parsing	parsing;
-	parsing = (t_parsing){0};
+	parsing	parsing;
 	int	socket_fd;
 	int	client_fd;
 	int	epoll_fd;
@@ -121,12 +123,21 @@ int	main()
 					//print on terminal what the server receives
 					int	i = 0;
 					char	buffer[1025];
+					parsing.request_body.clear();
 					do
 					{
-						i = read(events[n].data.fd, buffer, 1024);
-						buffer[i] = '\0';
-						printf("%s", buffer);
+						i = recv(events[n].data.fd, buffer, 1024, 0);
+						parsing.request_body.append(buffer, i);
 					} while (i == 1024);
+					ft_parse_request(&parsing);
+					std::cout << parsing.request_body << "\n";
+					if (parsing.request_type == "POST")
+					{
+						std::cout << "oui\n";
+						std::string	FileName = "oui";
+						std::ofstream ofs(FileName.c_str(), std::ios_base::binary);
+						ofs << parsing.request_body;
+					}
 					struct epoll_event ev;
 					ev.data.fd = events[n].data.fd;
 					ev.events = EPOLLOUT;
@@ -155,7 +166,7 @@ int	main()
 					"		<p></p>"
 					"		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"</a>"
 					"		<form method=\"POST\" enctype=\"multipart/form-data\">"
-					"			<input type=\"file\" id=\"actual-btn\"/>"
+					"			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
 					"			<input type=\"submit\"/>"
 					"		</form>"
 					"	</body>"
