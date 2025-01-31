@@ -6,7 +6,7 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 13:17:10 by umosse            #+#    #+#             */
-/*   Updated: 2025/01/29 13:35:28 by umosse           ###   ########.fr       */
+/*   Updated: 2025/01/31 11:46:30 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,4 +30,11 @@ struct parsing {
 	std::string	request_type;
 };
 
+struct img {
+	std::string	key;
+	std::string	body;
+	std::string	type;
+};
+
 void	ft_parse_request(parsing *parsing);
+void	ft_parse_img(parsing *parsing, img *img);

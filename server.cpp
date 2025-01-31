@@ -6,7 +6,7 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 13:35:03 by umosse            #+#    #+#             */
-/*   Updated: 2025/01/29 14:51:58 by umosse           ###   ########.fr       */
+/*   Updated: 2025/01/31 15:46:14 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 int	main()
 {
 	parsing	parsing;
+	img	img;
 	int	socket_fd;
 	int	client_fd;
 	int	epoll_fd;
@@ -120,7 +121,6 @@ int	main()
 				}
 				if (events[n].events & EPOLLIN)
 				{
-					//print on terminal what the server receives
 					int	i = 0;
 					char	buffer[1025];
 					parsing.request_body.clear();
@@ -130,12 +130,11 @@ int	main()
 						parsing.request_body.append(buffer, i);
 					} while (i == 1024);
 					ft_parse_request(&parsing);
-					std::cout << parsing.request_body << "\n";
 					if (parsing.request_type == "POST")
 					{
-						std::cout << "oui\n";
 						std::string	FileName = "oui";
 						std::ofstream ofs(FileName.c_str(), std::ios_base::binary);
+						ft_parse_img(&parsing, &img);
 						ofs << parsing.request_body;
 					}
 					struct epoll_event ev;
