@@ -6,16 +6,22 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 13:35:03 by umosse            #+#    #+#             */
-/*   Updated: 2025/01/31 15:46:14 by umosse           ###   ########.fr       */
+/*   Updated: 2025/02/04 15:29:00 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
+#include <cstddef>
 #include <fstream>
 #include <ios>
+#include <iterator>
+#include <string>
 #include <sys/epoll.h>
+#include <sys/socket.h>
 
 #define MAX_EVENTS 42
+
+static int a = 0;
 
 int	main()
 {
@@ -130,6 +136,31 @@ int	main()
 						parsing.request_body.append(buffer, i);
 					} while (i == 1024);
 					ft_parse_request(&parsing);
+					std::cout << parsing.request_type << "\n";
+					if (parsing.request_type == "GET" && a == 1)
+					{
+						std::fstream	imgFile;
+						imgFile.open("200.gif", std::ios::in);
+						if (!imgFile)
+							std::cout << "gif could not be opened\n";
+						else
+						{
+							std::cout << "gif was opened\n";
+							std::string imgStr((std::istreambuf_iterator<char>(imgFile)), std::istreambuf_iterator<char>());
+							std::string FileName2 = "oui2";
+							std::ofstream ofs(FileName2.c_str(), std::ios_base::binary);  // Open output file in binary mode
+							ofs.write(imgStr.c_str(), imgStr.size());
+							img.oldimage = imgStr;
+							// std::string	imgStr;
+							// while (std::getline(imgFile, imgStr))
+							// {
+							// 	img.oldimage.append(imgStr);
+							// }
+							// std::string	FileName2 = "oui2";
+							// std::ofstream	ofs(FileName2.c_str(), std::ios_base::binary);
+							// ofs << img.oldimage;
+						}
+					}
 					if (parsing.request_type == "POST")
 					{
 						std::string	FileName = "oui";
@@ -148,34 +179,84 @@ int	main()
 				}
 				if (events[n].events & EPOLLOUT)
 				{
+					if (a%2 == 1)
+					{	
+
+						std::stringstream header;
+						std::string page;
+						page = img.oldimage;
+						std::size_t content_length = img.oldimage.length();
+						std::cout << "content length = " << content_length << "\n";
+						header << "HTTP/1.1 200 OK\r\n";
+						header << "Content-Type: image/gif\r\n";
+						header << "Content-Length: " << content_length << "\r\n\r\n";
+						send(events[n].data.fd, header.str().c_str(), header.str().length(), 0);
+						send(events[n].data.fd, page.c_str(), page.length(), 0);
+						std::cout << a << std::endl;
+						a++;
+
+					}
+					else
+					{
+						std::stringstream header;
+						std::string page;
+						page = "<!DOCTYPE html>"
+						"<html lang=\"en\">"
+						"<head>"
+						"	<meta charset=\"UTF-8\">"
+						"	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
+						"	<title>Webserv</title>"
+						"</head>"
+						"	<body>"
+						"		<h1>Hello world</h1>"
+						"		<p style='color: red;'>This is a paragraph</p>"
+						"		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" target=\"_blank\">DUCK</a>"
+						"		<p></p>"
+						"		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
+						"		<img src=\"/200.gif\"/>"
+						"		<form method=\"POST\" enctype=\"multipart/form-data\">"
+						"			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
+						"			<input type=\"submit\"/>"
+						"		</form>"
+						"	</body>"
+						"</html>";
+						std::size_t content_length = page.length();
+						header << "HTTP/1.1 200 OK\r\n"
+						"Content-Type: text/html\r\n";
+						header << "Content-Length: " << content_length << "\r\n\r\n";
+						send(events[n].data.fd, header.str().c_str(), header.str().length(), 0);
+						send(events[n].data.fd, page.c_str(), page.length(), 0);
+						a++;
+					}
 					//simulate response from server
-					std::stringstream header;
-					std::string page;
-					page = "<!DOCTYPE html>"
-					"<html lang=\"en\">"
-					"<head>"
-					"	<meta charset=\"UTF-8\">"
-					"	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-					"	<title>Webserv</title>"
-					"</head>"
-					"	<body>"
-					"		<h1>Hello world</h1>"
-					"		<p style='color: red;'>This is a paragraph</p>"
-					"		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" target=\"_blank\">DUCK</a>"
-					"		<p></p>"
-					"		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"</a>"
-					"		<form method=\"POST\" enctype=\"multipart/form-data\">"
-					"			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
-					"			<input type=\"submit\"/>"
-					"		</form>"
-					"	</body>"
-					"</html>";
-					std::size_t content_length = page.length();
-					header << "HTTP/1.1 200 OK\r\n"
-					"Content-Type: text/html\r\n";
-					header << "Content-Length: " << content_length << "\r\n\r\n";
-					send(events[n].data.fd, header.str().c_str(), header.str().length(), 0);
-					send(events[n].data.fd, page.c_str(), page.length(), 0);
+					// std::stringstream header;
+					// std::string page;
+					// page = "<!DOCTYPE html>"
+					// "<html lang=\"en\">"
+					// "<head>"
+					// "	<meta charset=\"UTF-8\">"
+					// "	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
+					// "	<title>Webserv</title>"
+					// "</head>"
+					// "	<body>"
+					// "		<h1>Hello world</h1>"
+					// "		<p style='color: red;'>This is a paragraph</p>"
+					// "		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" target=\"_blank\">DUCK</a>"
+					// "		<p></p>"
+					// "		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
+					// "		<img src=\"/200.gif\"/>"
+					// "		<form method=\"POST\" enctype=\"multipart/form-data\">"
+					// "			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
+					// "			<input type=\"submit\"/>"
+					// "		</form>"
+					// "	</body>"
+					// "</html>";
+					// std::size_t content_length = page.length();
+					// header << "HTTP/1.1 200 OK\r\n"
+					// "Content-Type: text/html\r\n";
+					// header << "Content-Length: " << content_length << "\r\n\r\n";
+					// send(events[n].data.fd, header.str().c_str(), header.str().length(), 0);
+					// send(events[n].data.fd, page.c_str(), page.length(), 0);
 					struct epoll_event ev;
 					ev.data.fd = events[n].data.fd;
 					ev.events = EPOLLIN | EPOLLRDHUP;

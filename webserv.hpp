@@ -6,12 +6,13 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 13:17:10 by umosse            #+#    #+#             */
-/*   Updated: 2025/01/31 11:46:30 by umosse           ###   ########.fr       */
+/*   Updated: 2025/02/04 14:03:34 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+#include <cstddef>
 # include <stdlib.h>
 # include <stdio.h>
 # include <iostream>
@@ -34,6 +35,10 @@ struct img {
 	std::string	key;
 	std::string	body;
 	std::string	type;
+
+
+
+	std::string	oldimage;
 };
 
 void	ft_parse_request(parsing *parsing);
