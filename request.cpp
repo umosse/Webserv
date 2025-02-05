@@ -52,3 +52,16 @@ void	ft_parse_img(parsing *parsing, img *img)
 
 	offset = parsing->request_body.find("\r\n", pos);
 }
+
+void	ft_parse_delete(parsing *parsing)
+{
+	int	offset = 0;
+	int	pos = 0;
+	int	len = 0;
+
+	offset = parsing->request_body.find("/") + 1;
+	pos = parsing->request_body.find(" HTTP", offset);
+	len = pos - offset;
+	parsing->delURL = parsing->request_body.substr(offset, len);
+	std::cout << parsing->delURL << "\n";
+}

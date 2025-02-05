@@ -6,18 +6,21 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 13:35:03 by umosse            #+#    #+#             */
-/*   Updated: 2025/02/04 15:29:00 by umosse           ###   ########.fr       */
+/*   Updated: 2025/02/05 16:11:38 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 #include <cstddef>
+#include <cstdio>
 #include <fstream>
 #include <ios>
 #include <iterator>
 #include <string>
 #include <sys/epoll.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define MAX_EVENTS 42
 
@@ -137,28 +140,24 @@ int	main()
 					} while (i == 1024);
 					ft_parse_request(&parsing);
 					std::cout << parsing.request_type << "\n";
-					if (parsing.request_type == "GET" && a == 1)
+					std::cout << parsing.request_body << "\n";
+					if (parsing.request_type == "GET" && a%2 == 1)
 					{
 						std::fstream	imgFile;
-						imgFile.open("200.gif", std::ios::in);
+						imgFile.open("www/200.gif", std::ios::in);
 						if (!imgFile)
 							std::cout << "gif could not be opened\n";
 						else
 						{
 							std::cout << "gif was opened\n";
-							std::string imgStr((std::istreambuf_iterator<char>(imgFile)), std::istreambuf_iterator<char>());
+							std::string	imgStr;
+							std::istreambuf_iterator<char> begin(imgFile), end;
+							imgStr.assign(begin, end);
+							// std::string imgStr((std::istreambuf_iterator<char>(imgFile)), std::istreambuf_iterator<char>());
 							std::string FileName2 = "oui2";
 							std::ofstream ofs(FileName2.c_str(), std::ios_base::binary);  // Open output file in binary mode
 							ofs.write(imgStr.c_str(), imgStr.size());
 							img.oldimage = imgStr;
-							// std::string	imgStr;
-							// while (std::getline(imgFile, imgStr))
-							// {
-							// 	img.oldimage.append(imgStr);
-							// }
-							// std::string	FileName2 = "oui2";
-							// std::ofstream	ofs(FileName2.c_str(), std::ios_base::binary);
-							// ofs << img.oldimage;
 						}
 					}
 					if (parsing.request_type == "POST")
@@ -167,6 +166,11 @@ int	main()
 						std::ofstream ofs(FileName.c_str(), std::ios_base::binary);
 						ft_parse_img(&parsing, &img);
 						ofs << parsing.request_body;
+					}
+					if (parsing.request_type == "DELETE")
+					{
+						ft_parse_delete(&parsing);
+						unlink(parsing.delURL.c_str());
 					}
 					struct epoll_event ev;
 					ev.data.fd = events[n].data.fd;
@@ -181,7 +185,6 @@ int	main()
 				{
 					if (a%2 == 1)
 					{	
-
 						std::stringstream header;
 						std::string page;
 						page = img.oldimage;
@@ -194,7 +197,6 @@ int	main()
 						send(events[n].data.fd, page.c_str(), page.length(), 0);
 						std::cout << a << std::endl;
 						a++;
-
 					}
 					else
 					{

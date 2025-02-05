@@ -6,13 +6,13 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 13:17:10 by umosse            #+#    #+#             */
-/*   Updated: 2025/02/04 14:03:34 by umosse           ###   ########.fr       */
+/*   Updated: 2025/02/05 14:50:12 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <cstddef>
+# include <cstddef>
 # include <stdlib.h>
 # include <stdio.h>
 # include <iostream>
@@ -29,6 +29,8 @@
 struct parsing {
 	std::string	request_body;
 	std::string	request_type;
+
+	std::string	delURL;
 };
 
 struct img {
@@ -43,3 +45,4 @@ struct img {
 
 void	ft_parse_request(parsing *parsing);
 void	ft_parse_img(parsing *parsing, img *img);
+void	ft_parse_delete(parsing *parsing);
