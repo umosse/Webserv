@@ -4,8 +4,18 @@
 
 void	ft_parse_request(parsing *parsing)
 {
+	int	offset = 0;
+	int	pos = 0;
+	int len = 0;
+
 	if (parsing->request_body.find("GET") == 0)
+	{
 		parsing->request_type = "GET";
+		offset = parsing->request_body.find("/");
+		pos = parsing->request_body.find("HTTP", offset) - 1;
+		len = pos - offset;
+		parsing->get_request = parsing->request_body.substr(offset, len);
+	}
 	else if (parsing->request_body.find("POST") == 0)
 		parsing->request_type = "POST";
 	else if (parsing->request_body.find("DELETE") == 0)
@@ -23,7 +33,7 @@ void	ft_parse_img(parsing *parsing, img *img)
 
 	// find key
 	offset = parsing->request_body.find("\r\n\r\n");
-	offset = parsing->request_body.find("-------", offset);
+	offset = parsing->request_body.find("------", offset);
 	pos = parsing->request_body.find("\r\n", offset);
 	if (pos == -1 || offset == -1)
 		return ;
@@ -46,7 +56,8 @@ void	ft_parse_img(parsing *parsing, img *img)
 		return ;
 	len = pos - offset;
 	img->body = parsing->request_body.substr(offset, len);
-	std::string	FileName = img->type;
+	std::string	FileName = "www/";
+	FileName.append(img->type);
 	std::ofstream ofs(FileName.c_str(), std::ios_base::binary);
 	ofs << img->body;
 

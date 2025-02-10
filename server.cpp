@@ -6,7 +6,7 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 13:35:03 by umosse            #+#    #+#             */
-/*   Updated: 2025/02/05 16:11:38 by umosse           ###   ########.fr       */
+/*   Updated: 2025/02/10 15:40:19 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,8 +23,6 @@
 #include <unistd.h>
 
 #define MAX_EVENTS 42
-
-static int a = 0;
 
 int	main()
 {
@@ -139,25 +137,53 @@ int	main()
 						parsing.request_body.append(buffer, i);
 					} while (i == 1024);
 					ft_parse_request(&parsing);
+					std::cout << parsing.get_request << "\n";
 					std::cout << parsing.request_type << "\n";
 					std::cout << parsing.request_body << "\n";
-					if (parsing.request_type == "GET" && a%2 == 1)
+					std::cout << img.type << " <- this is the request_body\n";
+					if (parsing.request_type == "GET" && (parsing.get_request == "/200.gif" || parsing.get_request == "/vstineau.jpg"))
 					{
-						std::fstream	imgFile;
-						imgFile.open("www/200.gif", std::ios::in);
-						if (!imgFile)
-							std::cout << "gif could not be opened\n";
-						else
+						if (parsing.get_request == "/200.gif")
 						{
-							std::cout << "gif was opened\n";
-							std::string	imgStr;
-							std::istreambuf_iterator<char> begin(imgFile), end;
-							imgStr.assign(begin, end);
-							// std::string imgStr((std::istreambuf_iterator<char>(imgFile)), std::istreambuf_iterator<char>());
-							std::string FileName2 = "oui2";
-							std::ofstream ofs(FileName2.c_str(), std::ios_base::binary);  // Open output file in binary mode
-							ofs.write(imgStr.c_str(), imgStr.size());
-							img.oldimage = imgStr;
+							std::fstream	imgFile;
+							std::string		imgName;
+							imgName = "www/";
+							imgName.append(img.type);
+							imgFile.open("www/200.gif", std::ios::in);
+							if (!imgFile)
+								std::cout << "gif could not be opened\n";
+							else
+							{
+								std::cout << "gif was opened\n";
+								std::string	imgStr;
+								std::istreambuf_iterator<char> begin(imgFile), end;
+								imgStr.assign(begin, end);
+								std::string FileName2 = "oui2";
+								std::ofstream ofs(FileName2.c_str(), std::ios_base::binary);  // Open output file in binary mode
+								ofs.write(imgStr.c_str(), imgStr.size());
+								img.oldimage = imgStr;
+							}
+						}
+						if (parsing.get_request== "/vstineau.jpg")
+						{
+							std::fstream	imgFile;
+							std::string		imgName;
+							imgName = "www/";
+							imgName.append(img.type);
+							imgFile.open("www/vstineau.jpg", std::ios::in);
+							if (!imgFile)
+								std::cout << "vincent could not be opened\n";
+							else
+							{
+								std::cout << "vincent was opened\n";
+								std::string	imgStr;
+								std::istreambuf_iterator<char> begin(imgFile), end;
+								imgStr.assign(begin, end);
+								std::string FileName3 = "oui3";
+								std::ofstream ofs(FileName3.c_str(), std::ios_base::binary);  // Open output file in binary mode
+								ofs.write(imgStr.c_str(), imgStr.size());
+								img.oldimage = imgStr;
+							}
 						}
 					}
 					if (parsing.request_type == "POST")
@@ -183,8 +209,8 @@ int	main()
 				}
 				if (events[n].events & EPOLLOUT)
 				{
-					if (a%2 == 1)
-					{	
+					if (parsing.get_request == "/200.gif")
+					{
 						std::stringstream header;
 						std::string page;
 						page = img.oldimage;
@@ -195,8 +221,21 @@ int	main()
 						header << "Content-Length: " << content_length << "\r\n\r\n";
 						send(events[n].data.fd, header.str().c_str(), header.str().length(), 0);
 						send(events[n].data.fd, page.c_str(), page.length(), 0);
-						std::cout << a << std::endl;
-						a++;
+						img.oldimage.clear();
+					}
+					if (parsing.get_request == "/vstineau.jpg")
+					{
+						std::stringstream header;
+						std::string page;
+						page = img.oldimage;
+						std::size_t content_length = img.oldimage.length();
+						std::cout << "content length = " << content_length << "\n";
+						header << "HTTP/1.1 200 OK\r\n";
+						header << "Content-Type: image/gif\r\n";
+						header << "Content-Length: " << content_length << "\r\n\r\n";
+						send(events[n].data.fd, header.str().c_str(), header.str().length(), 0);
+						send(events[n].data.fd, page.c_str(), page.length(), 0);
+						img.oldimage.clear();
 					}
 					else
 					{
@@ -216,6 +255,7 @@ int	main()
 						"		<p></p>"
 						"		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
 						"		<img src=\"/200.gif\"/>"
+						"		<img src=\"/vstineau.jpg\"/>"
 						"		<form method=\"POST\" enctype=\"multipart/form-data\">"
 						"			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
 						"			<input type=\"submit\"/>"
@@ -228,37 +268,7 @@ int	main()
 						header << "Content-Length: " << content_length << "\r\n\r\n";
 						send(events[n].data.fd, header.str().c_str(), header.str().length(), 0);
 						send(events[n].data.fd, page.c_str(), page.length(), 0);
-						a++;
 					}
-					//simulate response from server
-					// std::stringstream header;
-					// std::string page;
-					// page = "<!DOCTYPE html>"
-					// "<html lang=\"en\">"
-					// "<head>"
-					// "	<meta charset=\"UTF-8\">"
-					// "	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-					// "	<title>Webserv</title>"
-					// "</head>"
-					// "	<body>"
-					// "		<h1>Hello world</h1>"
-					// "		<p style='color: red;'>This is a paragraph</p>"
-					// "		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" target=\"_blank\">DUCK</a>"
-					// "		<p></p>"
-					// "		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
-					// "		<img src=\"/200.gif\"/>"
-					// "		<form method=\"POST\" enctype=\"multipart/form-data\">"
-					// "			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
-					// "			<input type=\"submit\"/>"
-					// "		</form>"
-					// "	</body>"
-					// "</html>";
-					// std::size_t content_length = page.length();
-					// header << "HTTP/1.1 200 OK\r\n"
-					// "Content-Type: text/html\r\n";
-					// header << "Content-Length: " << content_length << "\r\n\r\n";
-					// send(events[n].data.fd, header.str().c_str(), header.str().length(), 0);
-					// send(events[n].data.fd, page.c_str(), page.length(), 0);
 					struct epoll_event ev;
 					ev.data.fd = events[n].data.fd;
 					ev.events = EPOLLIN | EPOLLRDHUP;

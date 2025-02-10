@@ -6,7 +6,7 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 13:17:10 by umosse            #+#    #+#             */
-/*   Updated: 2025/02/05 14:50:12 by umosse           ###   ########.fr       */
+/*   Updated: 2025/02/10 12:25:18 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@
 struct parsing {
 	std::string	request_body;
 	std::string	request_type;
+	std::string	get_request;
 
 	std::string	delURL;
 };
