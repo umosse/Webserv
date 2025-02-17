@@ -48,6 +48,7 @@ void	ft_parse_img(parsing *parsing, img *img)
 		return ;
 	len = pos - offset;
 	img->type = parsing->request_body.substr(offset, len);
+	// if img->type is the same as a preexisting image, stop.
 
 	// get img body
 	offset = parsing->request_body.find("\r\n\r\n", pos) + 4;

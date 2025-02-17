@@ -6,7 +6,7 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/08 13:35:03 by umosse            #+#    #+#             */
-/*   Updated: 2025/02/10 15:40:19 by umosse           ###   ########.fr       */
+/*   Updated: 2025/02/17 13:29:44 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,33 @@
 #include <unistd.h>
 
 #define MAX_EVENTS 42
+
+#define NORMAL_COLOR  "\x1B[0m"
+#define GREEN  "\x1B[32m"
+#define BLUE  "\x1B[34m"
+
+// std::string show_dir_content(char *path)
+// {
+// 	DIR * d = opendir(path); // open the path
+// 	if(d==NULL)
+// 		return std::string(); // if was not able, return
+// 	struct dirent * dir; // for the directory entries
+// 	while ((dir = readdir(d)) != NULL) // if we were able to read somehting from the directory
+// 	{
+// 		if(dir-> d_type != DT_DIR) // if the type is not directory just print it with blue color
+// 			printf("%s%s\n", BLUE, dir->d_name);
+// 		else
+// 		if(dir -> d_type == DT_DIR && strcmp(dir->d_name,".")!=0 && strcmp(dir->d_name,"..")!=0 ) // if it is a directory
+// 		{
+// 			printf("%s\n", dir->d_name); // print its name in green
+// 			char d_path[255]; // here I am using sprintf which is safer than strcat
+// 			sprintf(d_path, "%s/%s", path, dir->d_name);
+// 			show_dir_content(d_path); // recall with the new path
+// 		}
+// 	}
+// 	closedir(d); // finally close the directory
+// 	return std::string();
+// }
 
 int	main()
 {
@@ -140,50 +167,25 @@ int	main()
 					std::cout << parsing.get_request << "\n";
 					std::cout << parsing.request_type << "\n";
 					std::cout << parsing.request_body << "\n";
-					std::cout << img.type << " <- this is the request_body\n";
 					if (parsing.request_type == "GET" && (parsing.get_request == "/200.gif" || parsing.get_request == "/vstineau.jpg"))
 					{
-						if (parsing.get_request == "/200.gif")
+						std::fstream	imgFile;
+						std::string		imgName;
+						imgName = "www";
+						imgName.append(parsing.get_request);
+						imgFile.open(imgName.c_str(), std::ios::in);
+						if (!imgFile)
+							std::cout << "gif could not be opened\n";
+						else
 						{
-							std::fstream	imgFile;
-							std::string		imgName;
-							imgName = "www/";
-							imgName.append(img.type);
-							imgFile.open("www/200.gif", std::ios::in);
-							if (!imgFile)
-								std::cout << "gif could not be opened\n";
-							else
-							{
-								std::cout << "gif was opened\n";
-								std::string	imgStr;
-								std::istreambuf_iterator<char> begin(imgFile), end;
-								imgStr.assign(begin, end);
-								std::string FileName2 = "oui2";
-								std::ofstream ofs(FileName2.c_str(), std::ios_base::binary);  // Open output file in binary mode
-								ofs.write(imgStr.c_str(), imgStr.size());
-								img.oldimage = imgStr;
-							}
-						}
-						if (parsing.get_request== "/vstineau.jpg")
-						{
-							std::fstream	imgFile;
-							std::string		imgName;
-							imgName = "www/";
-							imgName.append(img.type);
-							imgFile.open("www/vstineau.jpg", std::ios::in);
-							if (!imgFile)
-								std::cout << "vincent could not be opened\n";
-							else
-							{
-								std::cout << "vincent was opened\n";
-								std::string	imgStr;
-								std::istreambuf_iterator<char> begin(imgFile), end;
-								imgStr.assign(begin, end);
-								std::string FileName3 = "oui3";
-								std::ofstream ofs(FileName3.c_str(), std::ios_base::binary);  // Open output file in binary mode
-								ofs.write(imgStr.c_str(), imgStr.size());
-								img.oldimage = imgStr;
-							}
+							std::cout << "gif was opened\n";
+							std::string	imgStr;
+							std::istreambuf_iterator<char> begin(imgFile), end;
+							imgStr.assign(begin, end);
+							std::string FileName2 = "oui2";
+							std::ofstream ofs(FileName2.c_str(), std::ios_base::binary);  // Open output file in binary mode
+							ofs.write(imgStr.c_str(), imgStr.size());
+							img.oldimage = imgStr;
 						}
 					}
 					if (parsing.request_type == "POST")
@@ -209,33 +211,19 @@ int	main()
 				}
 				if (events[n].events & EPOLLOUT)
 				{
-					if (parsing.get_request == "/200.gif")
+					if (parsing.get_request.find(".jpg") != std::string::npos || parsing.get_request.find(".gif") != std::string::npos)
 					{
 						std::stringstream header;
 						std::string page;
 						page = img.oldimage;
 						std::size_t content_length = img.oldimage.length();
-						std::cout << "content length = " << content_length << "\n";
 						header << "HTTP/1.1 200 OK\r\n";
-						header << "Content-Type: image/gif\r\n";
+						header << "Content-Type: image/jpg\r\n";
 						header << "Content-Length: " << content_length << "\r\n\r\n";
 						send(events[n].data.fd, header.str().c_str(), header.str().length(), 0);
 						send(events[n].data.fd, page.c_str(), page.length(), 0);
 						img.oldimage.clear();
-					}
-					if (parsing.get_request == "/vstineau.jpg")
-					{
-						std::stringstream header;
-						std::string page;
-						page = img.oldimage;
-						std::size_t content_length = img.oldimage.length();
-						std::cout << "content length = " << content_length << "\n";
-						header << "HTTP/1.1 200 OK\r\n";
-						header << "Content-Type: image/gif\r\n";
-						header << "Content-Length: " << content_length << "\r\n\r\n";
-						send(events[n].data.fd, header.str().c_str(), header.str().length(), 0);
-						send(events[n].data.fd, page.c_str(), page.length(), 0);
-						img.oldimage.clear();
+						parsing.get_request.clear();
 					}
 					else
 					{

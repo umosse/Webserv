@@ -6,7 +6,7 @@
 /*   By: umosse <umosse@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/23 13:17:10 by umosse            #+#    #+#             */
-/*   Updated: 2025/02/10 12:25:18 by umosse           ###   ########.fr       */
+/*   Updated: 2025/02/17 13:29:49 by umosse           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # include <stdio.h>
 # include <iostream>
 # include <sys/types.h>
+# include <sys/stat.h>
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <arpa/inet.h>
@@ -24,7 +25,9 @@
 # include <sys/epoll.h>
 # include <fstream>
 # include <string>
+# include <string.h>
 # include <sstream>
+# include <dirent.h>
 
 struct parsing {
 	std::string	request_body;
